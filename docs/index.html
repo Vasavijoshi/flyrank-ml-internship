@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A research study on machine-learning-assisted content review prioritization using the FlyRank ML Internship dataset.">
+<title>Content Opportunity Scoring | Vasavi Joshi</title>
+<style>
+:root {
+  --bg: #f5f7fb;
+  --paper: #ffffff;
+  --ink: #182230;
+  --muted: #596579;
+  --accent: #2457d6;
+  --line: #dce3ee;
+  --soft: #edf3ff;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.75 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+a { color: var(--accent); }
+a:focus-visible { outline: 3px solid #f2b84b; outline-offset: 3px; }
+header {
+  background: #101b32;
+  color: white;
+  padding: 64px 22px 52px;
+}
+.hero, main, footer { max-width: 1000px; margin: auto; }
+.eyebrow {
+  color: #a9c4ff;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-size: .78rem;
+}
+h1 { font-size: clamp(2.1rem, 5vw, 3.6rem); line-height: 1.13; max-width: 850px; margin: 16px 0; }
+.subtitle { color: #dce6fa; font-size: 1.12rem; max-width: 760px; }
+.meta { color: #dce6fa; font-size: .92rem; }
+nav {
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  padding: 12px 22px;
+  display: flex; flex-wrap: wrap; gap: 10px 22px;
+  justify-content: center;
+}
+nav a { text-decoration: none; font-size: .9rem; font-weight: 650; }
+main { padding: 28px 18px 60px; }
+section, .card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: clamp(20px, 4vw, 34px);
+  margin: 20px 0;
+  box-shadow: 0 5px 20px rgba(20, 35, 60, .035);
+}
+h2 { font-size: 1.65rem; line-height: 1.3; margin-top: 0; }
+h3 { margin-bottom: 8px; }
+.lead { font-size: 1.08rem; }
+.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 24px 0; }
+.kpi { background: var(--soft); border-radius: 12px; padding: 18px; }
+.kpi strong { display: block; color: var(--accent); font-size: 1.8rem; line-height: 1.3; }
+.kpi span { font-size: .9rem; color: var(--muted); }
+table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: .94rem; }
+th, td { text-align: left; border-bottom: 1px solid var(--line); padding: 11px 12px; }
+th { background: #f0f4fb; }
+.table-wrap { overflow-x: auto; }
+figure { margin: 24px 0; }
+.chart { display: block; width: 100%; height: auto; }
+figcaption { color: var(--muted); font-size: .88rem; margin-top: 8px; }
+.note { border-left: 4px solid var(--accent); padding: 12px 16px; background: var(--soft); }
+.tag { display: inline-block; padding: 3px 9px; border-radius: 99px; background: #e6f6ed; color: #17653b; font-size: .8rem; font-weight: 700; }
+code { background: #eef1f6; padding: 2px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+li { margin: 6px 0; }
+.links { display: flex; flex-wrap: wrap; gap: 10px; }
+.button {
+  display: inline-block; padding: 10px 15px; border-radius: 9px;
+  background: var(--accent); color: white; text-decoration: none; font-weight: 650;
+}
+.button.secondary { background: var(--soft); color: var(--accent); }
+footer { padding: 10px 22px 42px; color: var(--muted); font-size: .92rem; }
+.small { font-size: .9rem; color: var(--muted); }
+@media (max-width: 640px) {
+  header { padding-top: 42px; }
+  .kpis { grid-template-columns: 1fr; }
+  th, td { padding: 9px; }
+}
+@media print {
+  body { background: white; }
+  nav, .button { display: none; }
+  section, .card { box-shadow: none; break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<header id="top">
+  <div class="hero">
+    <div class="eyebrow">Machine Learning Research · FlyRank Internship</div>
+    <h1>Content Opportunity Scoring</h1>
+    <p class="subtitle">A machine-learning approach to prioritizing content review using search visibility, engagement, freshness, and content characteristics.</p>
+    <p class="meta">Vasavi Joshi · Refresh / Content Opportunity Scoring · October 2026</p>
+    <div class="links">
+      <a class="button" href="https://github.com/Vasavijoshi/flyrank-ml-internship">View project repository</a>
+      <a class="button secondary" href="#results">Explore the results</a>
+    </div>
+  </div>
+</header>
+
+<nav aria-label="Paper sections">
+  <a href="#abstract">Abstract</a>
+  <a href="#introduction">Introduction</a>
+  <a href="#data">Data</a>
+  <a href="#methods">Methods</a>
+  <a href="#results">Results</a>
+  <a href="#limitations">Limitations</a>
+  <a href="#recommendations">Recommendations</a>
+  <a href="#reproducibility">Reproducibility</a>
+</nav>
+
+<main>
+<section id="abstract">
+  <h2>Abstract</h2>
+  <p class="lead">Which content pages should a team review first when time is limited? This study compares a transparent rule-based baseline with a Random Forest classifier using an anonymized 30,000-page starter dataset and a client-grouped holdout. The Random Forest measured Precision@10, Precision@50, and Precision@100 of 0.50, 0.64, and 0.61, compared with 0.30 at all three cutoffs for the baseline. A random-row split produced higher results, but possible overlap between clients makes it an optimistic sensitivity reference rather than the primary estimate. The resulting queue is intended for human-review prioritization, not as proof of future decline or evidence that refreshing a page causes better search performance.</p>
+  <div class="kpis">
+    <div class="kpi"><strong>0.50</strong><span>Random Forest Precision@10</span></div>
+    <div class="kpi"><strong>0.64</strong><span>Random Forest Precision@50</span></div>
+    <div class="kpi"><strong>0.61</strong><span>Random Forest Precision@100</span></div>
+  </div>
+  <p class="small">Primary evaluation: client-grouped holdout with zero client overlap. These metrics are observed results on one dataset and split.</p>
+</section>
+
+<section id="introduction">
+  <h2>1. Introduction and problem statement</h2>
+  <p>Content teams may manage many pages but have limited time to investigate them. The practical question is which pages deserve attention first for refreshing, expansion, protection, pruning, or monitoring.</p>
+  <p><strong>Research question:</strong> Which content pages should be reviewed first using measurable search visibility, engagement, freshness, and content characteristics?</p>
+  <p>The unit of analysis is one content page. The intended output is a ranked review queue containing a model-based decline probability, a reason code, and a suggested review action.</p>
+  <p>A fixed rule can identify obvious cases, such as older pages with high search visibility. A Random Forest can combine more signals and capture nonlinear relationships that a simple rule may miss. The goal is to support editorial review, not to automate editorial decisions.</p>
+</section>
+
+<section id="data">
+  <h2>2. Data and data safety</h2>
+  <h3>Dataset and scope</h3>
+  <p>The FlyRank ML Internship describes a larger search-intelligence warehouse of approximately 79 million rows and provides a smaller anonymized starter dataset. <strong>The model results reported here use the 30,000-page starter dataset with 44 columns; the Random Forest was not trained on the full warehouse.</strong></p>
+  <p>Earlier data-contract work examined <code>fact_content_daily_performance</code>, with <code>dim_content</code> used when content metadata was required. That work checked the February 1–28, 2026 feature window with a decision cutoff at the end of February. The warehouse checks covered 7,351,108 daily-grain rows; GSC data was available for 2,621,783 of them. These checks are distinct from the starter-dataset model evaluation.</p>
+  <h3>Model features</h3>
+  <p>The 12 inputs were <code>days_since_last_update</code>, <code>impressions_90d</code>, <code>clicks_90d</code>, <code>sessions_90d</code>, <code>ctr</code>, <code>avg_position</code>, <code>engagement_rate</code>, <code>scroll_rate</code>, <code>content_age_days</code>, <code>word_count</code>, <code>search_volume</code>, and <code>cpc</code>.</p>
+  <h3>Target and exclusions</h3>
+  <p>The target proxy was <code>is_declining_label = (trend_direction == "down")</code>. This is a dataset-derived label, not a guaranteed future outcome. <code>trend_direction</code> and <code>trend_pct</code> were excluded from model inputs because they are outcome-derived. The target itself was excluded from features. Pseudonymous <code>content_id</code> and <code>client_id</code> were not model inputs; client IDs were used only for grouped validation.</p>
+  <p class="note">Public-safety note: this page reports aggregate results and methodology. It does not publish client names, private search queries, or identifying client-page URLs.</p>
+</section>
+
+<section id="methods">
+  <h2>3. Methodology</h2>
+  <h3>Transparent baseline</h3>
+  <p>The Week-4 baseline combined freshness and search visibility. Staleness contributed 0 points for up to 90 days, 1 point for 91–180 days, and 2 points for more than 180 days. Visibility contributed 0 points for fewer than 250 impressions, 1 point for 250–499, and 2 points for at least 500 impressions. The sum ranged from 0 to 4; scores of at least 3 received the <em>Refresh</em> action, while the others received <em>Monitor</em>.</p>
+  <h3>Random Forest</h3>
+  <p>The classifier used 300 trees, <code>random_state=42</code>, <code>min_samples_leaf=5</code>, and median imputation. It combined the 12 listed features to estimate the probability associated with the declining-label proxy.</p>
+  <h3>Validation design</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Split statistic</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Training rows</td><td>23,837</td></tr>
+        <tr><td>Training clients</td><td>25</td></tr>
+        <tr><td>Test rows</td><td>6,163</td></tr>
+        <tr><td>Test clients</td><td>7</td></tr>
+        <tr><td>Client overlap</td><td>0</td></tr>
+        <tr><td>Test declining-label rate</td><td>51.1%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The primary evaluation grouped pages by client so a client's pages remained in one partition. Precision@K was the main metric because the intended use is prioritizing a limited number of pages for review.</p>
+  <h3>Leakage audit</h3>
+  <p>The final audit excluded <code>trend_direction</code>, <code>trend_pct</code>, <code>is_declining_label</code>, <code>content_id</code>, and <code>client_id</code> from model inputs. The audit passed. An earlier deliberate leakage experiment produced an artificially perfect score of 1.0000 after a future outcome-derived feature was introduced, demonstrating why such fields must be excluded.</p>
+</section>
+
+<section id="results">
+  <h2>4. Results: model versus baseline</h2>
+  <p>Both approaches were evaluated on the same client-grouped holdout using Precision@K.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Metric</th><th>Week-4 baseline</th><th>Random Forest, grouped split</th></tr></thead>
+      <tbody>
+        <tr><td>Precision@10</td><td>0.30</td><td><strong>0.50</strong></td></tr>
+        <tr><td>Precision@50</td><td>0.30</td><td><strong>0.64</strong></td></tr>
+        <tr><td>Precision@100</td><td>0.30</td><td><strong>0.61</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <figure>
+    <svg class="chart" viewBox="0 0 760 410" role="img" aria-labelledby="charttitle chartdesc">
+      <title id="charttitle">Precision at K: baseline compared with Random Forest</title>
+      <desc id="chartdesc">At K values 10, 50 and 100, baseline precision is 0.30 throughout. Grouped-client Random Forest precision is 0.50, 0.64 and 0.61.</desc>
+      <rect x="0" y="0" width="760" height="410" rx="12" fill="#ffffff"/>
+      <g stroke="#dce3ee" stroke-width="1">
+        <line x1="85" y1="320" x2="700" y2="320"/><line x1="85" y1="260" x2="700" y2="260"/>
+        <line x1="85" y1="200" x2="700" y2="200"/><line x1="85" y1="140" x2="700" y2="140"/>
+        <line x1="85" y1="80" x2="700" y2="80"/><line x1="85" y1="20" x2="700" y2="20"/>
+      </g>
+      <g fill="#465267" font-size="13" text-anchor="end">
+        <text x="72" y="324">0.0</text><text x="72" y="264">0.2</text><text x="72" y="204">0.4</text>
+        <text x="72" y="144">0.6</text><text x="72" y="84">0.8</text><text x="72" y="24">1.0</text>
+      </g>
+      <g fill="#465267" font-size="13" text-anchor="middle">
+        <text x="120" y="345">10</text><text x="390" y="345">50</text><text x="660" y="345">100</text>
+        <text x="390" y="382" font-size="15">K (pages prioritized for review)</text>
+      </g>
+      <text x="22" y="175" transform="rotate(-90 22 175)" fill="#465267" font-size="14" text-anchor="middle">Precision@K</text>
+      <polyline points="120,230 390,230 660,230" fill="none" stroke="#2457d6" stroke-width="3"/>
+      <g fill="#2457d6"><circle cx="120" cy="230" r="5"/><circle cx="390" cy="230" r="5"/><circle cx="660" cy="230" r="5"/></g>
+      <polyline points="120,170 390,128 660,137" fill="none" stroke="#e87524" stroke-width="3"/>
+      <g fill="#e87524"><circle cx="120" cy="170" r="5"/><circle cx="390" cy="128" r="5"/><circle cx="660" cy="137" r="5"/></g>
+      <g font-size="13" fill="#182230">
+        <line x1="420" y1="25" x2="450" y2="25" stroke="#2457d6" stroke-width="3"/><circle cx="435" cy="25" r="4" fill="#2457d6"/><text x="460" y="30">Week-4 baseline</text>
+        <line x1="420" y1="48" x2="450" y2="48" stroke="#e87524" stroke-width="3"/><circle cx="435" cy="48" r="4" fill="#e87524"/><text x="460" y="53">Random Forest — grouped client split</text>
+      </g>
+    </svg>
+    <figcaption>Figure 1. Observed Precision@K on the client-grouped holdout. The baseline is 0.30 at all three cutoffs; the Random Forest is 0.50, 0.64, and 0.61.</figcaption>
+  </figure>
+  <h3>Validation sensitivity</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Metric</th><th>Random row split</th><th>Grouped-client split</th></tr></thead>
+      <tbody>
+        <tr><td>Precision@10</td><td>1.00</td><td>0.50</td></tr>
+        <tr><td>Precision@50</td><td>0.96</td><td>0.64</td></tr>
+        <tr><td>Precision@100</td><td>0.94</td><td>0.61</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The random row split allowed pages from the same clients to appear in training and test data, making it an optimistic sensitivity reference. The grouped-client split had zero client overlap and is the primary estimate for unseen-client decision support.</p>
+  <p class="note"><strong>Honest interpretation:</strong> the Random Forest measured higher Precision@K than the baseline on this holdout. These observations do not prove future performance, statistical significance, or causal impact.</p>
+</section>
+
+<section id="interpretation">
+  <h2>5. Interpretation</h2>
+  <p>Permutation importance provided a diagnostic view of the model's inputs. The largest mean values were for <code>impressions_90d</code> (0.0605), <code>avg_position</code> (0.0350), <code>content_age_days</code> (0.0114), <code>clicks_90d</code> (0.0100), and <code>ctr</code> (0.0095).</p>
+  <p>These are model diagnostics, not causal effects. Negative permutation importance for <code>days_since_last_update</code> means that permuting the feature did not reduce average-precision performance on this evaluation set; it does not mean freshness causes worse outcomes.</p>
+</section>
+
+<section id="limitations">
+  <h2>6. Limitations and honest framing</h2>
+  <ul>
+    <li><strong>Dataset scope:</strong> model results use the 30,000-page starter dataset, not the full approximately 79-million-row warehouse.</li>
+    <li><strong>Proxy target:</strong> the declining label is dataset-derived and is not a guaranteed future outcome.</li>
+    <li><strong>Generalization:</strong> the primary evaluation uses one holdout containing seven test clients; performance across all clients and future periods is not established.</li>
+    <li><strong>Metric scope:</strong> Precision@K does not measure business value or editorial quality directly.</li>
+    <li><strong>No causal evidence:</strong> no randomized refresh intervention was conducted. The analysis cannot establish that refreshing a page causes improved search performance.</li>
+    <li><strong>Human review:</strong> high-ranked pages may not require action, and lower-ranked pages may still be important.</li>
+  </ul>
+  <p>The model must not autonomously publish, rewrite, delete, redirect, or otherwise modify content.</p>
+</section>
+
+<section id="recommendations">
+  <h2>7. Ranked recommendations: Content action playbook</h2>
+  <p>The queue is designed to help content teams decide which pages to investigate first. It is not an automatic content-change system.</p>
+  <h3>Priority levels</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Priority</th><th>Decline probability</th><th>Recommended next step</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag">Priority review</span></td><td>&ge; 0.70</td><td>Investigate first; verify signals and page context.</td></tr>
+        <tr><td>Review</td><td>&ge; 0.50 and &lt; 0.70</td><td>Investigate after the priority queue.</td></tr>
+        <tr><td>Monitor</td><td>&lt; 0.50</td><td>Continue monitoring unless other evidence appears.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small">These thresholds are operational prioritization choices, not calibrated guarantees of future decline.</p>
+  <h3>Reason codes</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Reason code</th><th>Trigger</th><th>Suggested action</th></tr></thead>
+      <tbody>
+        <tr><td><code>STALE_HIGH_VISIBILITY</code></td><td>More than 180 days since update and at least 500 impressions</td><td>Priority refresh review</td></tr>
+        <tr><td><code>STALE_PAGE</code></td><td>More than 180 days since update</td><td>Investigate whether a refresh is appropriate</td></tr>
+        <tr><td><code>HIGH_VISIBILITY_REVIEW</code></td><td>At least 500 impressions and elevated model ranking</td><td>Review search performance and intent alignment</td></tr>
+        <tr><td><code>AGING_PAGE</code></td><td>More than 90 days since update</td><td>Monitor or investigate freshness</td></tr>
+        <tr><td><code>MONITOR</code></td><td>No higher-priority rule applies</td><td>Continue monitoring</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>Human-review workflow</h3>
+  <p><strong>Rank → investigate → validate context → decide → act → monitor</strong></p>
+  <p>Before acting, a reviewer should verify search intent, factual accuracy, business importance, seasonality, recent changes, ranking context, and whether a page is strategically protected.</p>
+  <h3>Cost, value, and monitoring</h3>
+  <p>The expected value is better use of limited reviewer time. Costs include reviewing pages that do not need action and potentially missing lower-ranked pages that do. Monitor data quality, feature drift, ranking concentration, and Precision@K on newly labeled outcomes. Material changes or new labels should trigger fresh grouped validation.</p>
+  <h3>What must not be automated</h3>
+  <p>Do not autonomously publish or rewrite content, delete pages, change redirects or canonicals, make factual or editorial decisions, or treat a score as proof that refreshing will improve performance.</p>
+</section>
+
+<section id="reproducibility">
+  <h2>8. Reproducibility and project links</h2>
+  <p>Repository: <a href="https://github.com/Vasavijoshi/flyrank-ml-internship">Vasavijoshi/flyrank-ml-internship</a></p>
+  <ul>
+    <li><a href="https://github.com/Vasavijoshi/flyrank-ml-internship/blob/main/work/notebooks/w03_data_contract.ipynb">ML-04 — Data Contract</a></li>
+    <li><a href="https://github.com/Vasavijoshi/flyrank-ml-internship/blob/main/work/notebooks/w04_baseline_score.ipynb">ML-07 — Baseline Action Score</a></li>
+    <li><a href="https://github.com/Vasavijoshi/flyrank-ml-internship/blob/main/work/notebooks/w05_model.ipynb">ML-08 — Capstone Modeling Lane</a></li>
+    <li><a href="https://github.com/Vasavijoshi/flyrank-ml-internship/blob/main/work/notebooks/w06_validation_audit.ipynb">ML-09 — Validation and Research Claim Audit</a></li>
+    <li><a href="https://github.com/Vasavijoshi/flyrank-ml-internship/blob/main/work/notebooks/w07_action_playbook.ipynb">ML-10 — Content Action Playbook</a></li>
+    <li><a href="https://github.com/Vasavijoshi/flyrank-ml-internship/blob/main/work/notebooks/capstone.ipynb">ML-11 — Capstone Notebook</a></li>
+    <li><a href="https://github.com/Vasavijoshi/flyrank-ml-internship/blob/main/work/capstone_report.md">Full Markdown report</a></li>
+  </ul>
+  <h3>Re-running the work</h3>
+  <pre><code>git clone https://github.com/Vasavijoshi/flyrank-ml-internship.git
+cd flyrank-ml-internship
+pip install -r requirements.txt</code></pre>
+  <p>Open the relevant notebooks in Google Colab and select <strong>Runtime → Run all</strong>. ML-08 and ML-09 contain the modeling and evaluation evidence; the capstone notebook regenerates the paper-ready comparison chart and metrics record from the reported results.</p>
+  <p>Primary artifacts: <code>work/figures/precision_at_k_baseline_vs_random_forest.png</code> and <code>work/outputs/ml09_validation_metrics.json</code>. Generated queue CSVs are not required as version-controlled artifacts.</p>
+</section>
+
+<section id="acknowledgments">
+  <h2>9. Acknowledgments and data credit</h2>
+  <p><strong>Built on the <a href="https://flyrank.ai">FlyRank ML Internship dataset</a>.</strong></p>
+  <p>This project was completed as part of the FlyRank AI Machine Learning Internship. It uses anonymized data, aggregate reporting, leakage checks, client-grouped validation, and human-in-the-loop decision support.</p>
+</section>
+
+<section>
+  <h2>Claims and public-safety checklist</h2>
+  <ul>
+    <li>Metrics are observed measurements on the specified dataset and validation split.</li>
+    <li>The 51.1% test-set declining-label rate is shown alongside the ranking metrics.</li>
+    <li>The grouped-client split is the primary evaluation; the random-row split is a sensitivity reference only.</li>
+    <li>No causal claim is made about refreshing pages.</li>
+    <li>The model was not trained or evaluated on the full 79-million-row warehouse.</li>
+    <li>Label-derived and future-outcome information was excluded from model inputs.</li>
+    <li>No client names, private queries, or identifying client-page URLs are published.</li>
+  </ul>
+  <a class="button secondary" href="#top">Back to top ↑</a>
+</section>
+</main>
+
+<footer>
+  <p>Research project by Vasavi Joshi · FlyRank ML Internship · Refresh / Content Opportunity Scoring</p>
+  <p>Results should be interpreted as directional decision support, not as a guarantee of future performance.</p>
+</footer>
+</body>
+</html>
